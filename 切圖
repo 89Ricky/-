@@ -1,0 +1,62 @@
+import PIL
+from PIL import Image 
+import os
+import glob
+import pandas as pd
+import numpy as np
+
+src_path = "train_images"
+des_path = "test_images"
+
+if not os.path.isdir(des_path):
+    os.mkdir(des_path)
+
+from pathlib import Path
+def scan_image(fname):
+    count = 0
+    img_name = Path(fname).stem
+    ext_name = Path(fname).suffix
+    im = Image.open(fname)
+    width, height = im.size   # Get dimensions
+    new_width = 512
+    new_height = 512
+    if width < new_width or height <  new_height:
+       im = im.resize((width*2, height* 2))
+       width, height = im.size
+    strideX = (width*3//4 - new_width) //4
+    strideY = (height*5//8 - new_height) //3
+    for starty in range(height//4, height*7//8-new_height+1, strideY):
+        for startx in range(width//8, width*7//8-new_width+1, strideX):
+          left = startx
+          top = starty
+          right = startx + new_width
+          bottom = starty + new_height
+          subname = f"{img_name}-{count:03}{ext_name}"
+          count +=1
+          im2 = im.crop((left, top, right, bottom))
+          name2 = os.path.join(des_path, subname)
+          print(name2)
+          im2.save(name2)
+    new_width = 680
+    new_height = 680
+    strideX = (width*3//4 - new_width) //4
+    strideY = (height*5//8 - new_height) //3
+    for starty in range(height//4, height*7//8-new_height+1, strideY):
+        for startx in range(width//8, width*7//8-new_width+1, strideX):
+          left = startx
+          top = starty
+          right = startx + new_width
+          bottom = starty + new_height
+          subname = f"{img_name}-{count:03}{ext_name}"
+          count +=1
+          im2 = im.crop((left, top, right, bottom)).resize((512, 512))
+          name2 = os.path.join(des_path, subname)
+          print(name2)
+          im2.save(name2)
+
+subpath=os.path.join(src_path, "*")
+files = glob.glob(subpath)
+print(f"Total test files={len(files)}")
+for i, fname in enumerate(files):
+    print(f"{1:0000}:{fname}")
+    scan_image(fname)
